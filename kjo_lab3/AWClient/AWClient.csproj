@@ -119,14 +119,20 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Converters\ByteToStringConverter.cs" />
+    <Compile Include="Converters\DateTimeToOffsetConverter.cs" />
+    <Compile Include="DAL\ArtTypeRepository.cs" />
+    <Compile Include="DAL\ArtWorkRepository.cs" />
     <Compile Include="DAL\IArtTypeRepository.cs" />
     <Compile Include="DAL\IArtWorkRepository.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Models\ArtType.cs" />
-    <Compile Include="Models\Artwork.cs" />
+    <Compile Include="Models\ArtWork.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utilities\ApiException.cs" />
+    <Compile Include="Utilities\Jeeves.cs" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">
@@ -155,13 +161,18 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNet.WebApi.Client">
+      <Version>5.2.7</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
       <Version>6.2.7</Version>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
-    <Folder Include="Converters\" />
-    <Folder Include="Utilities\" />
+    <Reference Include="ArtworksWebApi">
+      <HintPath>C:\Users\kjo0\Desktop\Lab 3\kjo_lab3\ArtworksWebApi\ArtworksWebApi\bin\Debug\netcoreapp2.1\ArtworksWebApi.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>

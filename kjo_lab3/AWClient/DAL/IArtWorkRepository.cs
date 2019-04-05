@@ -1,12 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using AWClient.Models;
 
 namespace AWClient.DAL
 {
-    class IArtWorkRepository
+    public interface IArtWorkRepository
     {
+        Task<List<ArtWork>> GetArtWorks();
+        Task<ArtWork> GetArtWork(int ID);
+        Task<List<ArtWork>> GetArtWorksByArtType(int ArtTypeID);
+        Task AddArtWork(ArtWork awToAdd);
+        Task UpdateArtWork(ArtWork awToUpdate);
+        Task DeleteArtWork(ArtWork awToDelete);
     }
 }
