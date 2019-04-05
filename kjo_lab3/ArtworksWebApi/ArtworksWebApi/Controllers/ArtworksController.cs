@@ -25,7 +25,7 @@ namespace ArtworksWebApi.Controllers
         [HttpGet]
         public IEnumerable<Artwork> GetArtworks()
         {
-            return _context.Artworks.Include(a=>a.ArtType);
+            return _context.Artworks;//.Include(a=>a.ArtType);
         }
 
         // GET: api/Artworks/5
@@ -38,7 +38,7 @@ namespace ArtworksWebApi.Controllers
             }
 
             var artwork = await _context.Artworks
-                .Include(a => a.ArtType)
+                //.Include(a => a.ArtType)
                 .Where(a=>a.ID==id)
                 .FirstOrDefaultAsync();
 
@@ -55,7 +55,7 @@ namespace ArtworksWebApi.Controllers
         public IEnumerable<Artwork> GetArtworksByArtType(int id)
         {
             return _context.Artworks
-                .Include(a => a.ArtType)
+                //.Include(a => a.ArtType)
                 .Where(a => a.ArtTypeID == id);
         }
 

@@ -21,7 +21,7 @@ namespace AWClient.DAL
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
-        public async Task<List<ArtType>> GetArtType()
+        public async Task<List<ArtType>> GetArtType() //s
         {
             var response = await client.GetAsync("/api/arttypes");
             if (response.IsSuccessStatusCode)

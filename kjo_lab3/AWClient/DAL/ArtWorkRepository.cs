@@ -21,17 +21,17 @@ namespace AWClient.DAL
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
-        public async Task<List<ArtType>> GetArtWorks()
+        public async Task<List<ArtWork>> GetArtWorks()
         {
             var response = await client.GetAsync("/api/artworks");
             if (response.IsSuccessStatusCode)
             {
-                List<ArtType> artWorks = await response.Content.ReadAsAsync<List<ArtWork>>();
+                List<ArtWork> artWorks = await response.Content.ReadAsAsync<List<ArtWork>>();
                 return artWorks;
             }
             else
             {
-                return new List<ArtType>();
+                return new List<ArtWork>();
             }
         }
 
@@ -49,7 +49,7 @@ namespace AWClient.DAL
             }
         }
 
-        public async Task<ArtType> GetArtWork(int ID)
+        public async Task<ArtWork> GetArtWork(int ID)
         {
             var response = await client.GetAsync($"/api/artworks/{ID}");
             if (response.IsSuccessStatusCode)

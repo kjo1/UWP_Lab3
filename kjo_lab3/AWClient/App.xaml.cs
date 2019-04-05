@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AWClient.Models;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -31,6 +32,8 @@ namespace AWClient
             this.InitializeComponent();
             this.Suspending += OnSuspending;
         }
+
+        public List<ArtType> allTypes;
 
         /// <summary>
         /// Invoked when the application is launched normally by the end user.  Other entry points

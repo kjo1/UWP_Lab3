@@ -37,10 +37,10 @@ namespace ArtworksWebApi.Data
                 .HasIndex(a => a.Name)
                 .IsUnique();
 
-            // Lab 3-1 Unique - combination of Name and ArtTypeID
-            modelBuilder.Entity<Artwork>()
-                .HasIndex(a => new { a.Name, a.ArtTypeID })
-                .IsUnique();
+            //// Lab 3-1 Unique - combination of Name and ArtTypeID
+            //modelBuilder.Entity<Artwork>()
+            //    .HasIndex(a => new { a.Name, a.ArtTypeID })
+            //    .IsUnique();
 
         }
     }

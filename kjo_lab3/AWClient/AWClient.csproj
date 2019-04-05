@@ -11,7 +11,7 @@
     <AssemblyName>AWClient</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
-    <TargetPlatformVersion Condition=" '$(TargetPlatformVersion)' == '' ">10.0.17763.0</TargetPlatformVersion>
+    <TargetPlatformVersion Condition=" '$(TargetPlatformVersion)' == '' ">10.0.17134.0</TargetPlatformVersion>
     <TargetPlatformMinVersion>10.0.15063.0</TargetPlatformMinVersion>
     <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
     <FileAlignment>512</FileAlignment>
@@ -119,7 +119,10 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Converters\ByteToStringConverter.cs" />
+    <Compile Include="ArtWorkEdit.xaml.cs">
+      <DependentUpon>ArtWorkEdit.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Converters\DecimalToStringConverter.cs" />
     <Compile Include="Converters\DateTimeToOffsetConverter.cs" />
     <Compile Include="DAL\ArtTypeRepository.cs" />
     <Compile Include="DAL\ArtWorkRepository.cs" />
@@ -129,7 +132,7 @@
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Models\ArtType.cs" />
-    <Compile Include="Models\ArtWork.cs" />
+    <Compile Include="Models\Artwork.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utilities\ApiException.cs" />
     <Compile Include="Utilities\Jeeves.cs" />
@@ -155,6 +158,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Page Include="ArtWorkEdit.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -169,11 +176,6 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup />
-  <ItemGroup>
-    <Reference Include="ArtworksWebApi">
-      <HintPath>C:\Users\kjo0\Desktop\Lab 3\kjo_lab3\ArtworksWebApi\ArtworksWebApi\bin\Debug\netcoreapp2.1\ArtworksWebApi.dll</HintPath>
-    </Reference>
-  </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>
