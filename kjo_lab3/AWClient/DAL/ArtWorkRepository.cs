@@ -49,7 +49,7 @@ namespace AWClient.DAL
             }
         }
 
-        public async Task<ArtType> GetArtWorks(int ID)
+        public async Task<ArtType> GetArtWork(int ID)
         {
             var response = await client.GetAsync($"/api/artworks/{ID}");
             if (response.IsSuccessStatusCode)
