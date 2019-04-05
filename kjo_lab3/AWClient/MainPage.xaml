@@ -20,7 +20,7 @@
         </Grid.RowDefinitions>
 
         <StackPanel x:Name="TitlePanel" Grid.Row="0" Margin="12,17,0,28">
-            <TextBlock Text="Art" FontSize="28"  HorizontalAlignment="Center" />
+            <TextBlock Text="Master of Arts" FontSize="28"  HorizontalAlignment="Center" />
         </StackPanel>
 
         <Grid x:Name="ContentPanel" Grid.Row="1" Margin="12,0,12,0">
@@ -29,9 +29,9 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <StackPanel x:Name="ArtTypePanel" Grid.Row="0" Margin="12,0,12,0">
-                <TextBlock Text="ArtWorks By ArtType:" Margin="0,0,0,6"/>
+                <TextBlock Text="ArtWorks By Art Type:" Margin="0,0,0,6"/>
                 <ComboBox x:Name="ArtTypeCombo" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
-                       DisplayMemberPath="Type" SelectionChanged="ArtTypeCombo_SelectionChanged" Margin="0,0,0,6" PlaceholderText=" - All Types" />
+                       DisplayMemberPath="Type" SelectionChanged="ArtTypeCombo_SelectionChanged" Margin="0,0,0,6" PlaceholderText=" - All Art Types" />
             </StackPanel>
             <GridView Name="artWorkList" Margin="30,0,0,0" Grid.Row="1" 
                       ItemClick="artWorkList_ItemClick"

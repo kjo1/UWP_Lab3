@@ -76,7 +76,7 @@
                 <ComboBox x:Name="ArtTypeCombo" Grid.Column="1" Grid.Row="2" 
                           HorizontalAlignment="Stretch" VerticalAlignment="Center"
                           SelectedValuePath="ID"  DisplayMemberPath="Type" 
-                          SelectedValue="{Binding TypeID, Mode=TwoWay}"   />
+                          SelectedValue="{Binding ID, Mode=TwoWay}"   />
 
                 <TextBlock Grid.Row="3" Grid.Column="0" HorizontalAlignment="Left" Margin="3,0,6,0"
                            VerticalAlignment="Center" Name="valueBlock" Text="Value  " />

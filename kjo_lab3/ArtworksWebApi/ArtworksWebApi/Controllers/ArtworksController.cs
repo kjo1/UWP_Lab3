@@ -82,14 +82,14 @@ namespace ArtworksWebApi.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!PatientExists(id))
+                if (!artWorkExists(id))
                 {
-                    ModelState.AddModelError("", "Concurrency Error: Patient has been Removed.");
+                    ModelState.AddModelError("", "Concurrency Error: Artwork has been Removed.");
                     return BadRequest(ModelState);
                 }
                 else
                 {
-                    ModelState.AddModelError("", "Concurrency Error: Patient has been updated by another user.  Cancel and try editing the record again.");
+                    ModelState.AddModelError("", "Concurrency Error: Artwork has been updated by another user.  Cancel and try editing the record again.");
                     return BadRequest(ModelState);
                 }
             }
@@ -97,7 +97,7 @@ namespace ArtworksWebApi.Controllers
             {
                 if (dex.InnerException.Message.Contains("IX_"))
                 {
-                    ModelState.AddModelError("", "Unable to save changes: Duplicate OHIP number.");
+                    ModelState.AddModelError("", "Unable to save changes: Duplicate Name for this type of Artwork.");
                     return BadRequest(ModelState);
                 }
                 else
@@ -122,13 +122,13 @@ namespace ArtworksWebApi.Controllers
             try
             {
                 await _context.SaveChangesAsync();
-                return CreatedAtAction("GetPatient", new { id = artwork.ID }, artwork);
+                return CreatedAtAction("GetArtWork", new { id = artwork.ID }, artwork);
             }
             catch (DbUpdateException dex)
             {
                 if (dex.InnerException.Message.Contains("IX_"))
                 {
-                    ModelState.AddModelError("", "Unable to save: Duplicate OHIP number.");
+                    ModelState.AddModelError("", "Unable to save: Duplicate Name for this type of Artwork.");
                     return BadRequest(ModelState);
                 }
                 else
@@ -147,29 +147,29 @@ namespace ArtworksWebApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            var patient = await _context.Artworks.FindAsync(id);
+            var artWork = await _context.Artworks.FindAsync(id);
 
-            if (patient == null)
+            if (artWork == null)
             {
-                ModelState.AddModelError("", "Delete Error: Patient has already been Removed.");
+                ModelState.AddModelError("", "Delete Error: Artwork has already been Removed.");
 
             }
             else
             {
                 try
                 {
-                    _context.Artworks.Remove(patient);
+                    _context.Artworks.Remove(artWork);
                     await _context.SaveChangesAsync();
-                    return Ok(patient);
+                    return Ok(artWork);
                 }
                 catch (DbUpdateException)
                 {
-                    ModelState.AddModelError("", "Delete Error: Unable to delete Patient.");
+                    ModelState.AddModelError("", "Delete Error: Unable to delete Artwork.");
                 }
             }
             return BadRequest(ModelState);
         }
-        private bool PatientExists(int id)
+        private bool artWorkExists(int id)
         {
             return _context.Artworks.Any(e => e.ID == id);
         }

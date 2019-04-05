@@ -11,7 +11,7 @@ namespace AWClient.Utilities
 {
     public static class Jeeves
     {
-        public static Uri DBUri = new Uri("http://localhost:52143//");
+        public static Uri DBUri = new Uri("http://localhost:59803//");
 
         //public static Uri DBUri = new Uri("https://nccorewebapi.azurewebsites.net//");
 
