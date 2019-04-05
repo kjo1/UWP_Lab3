@@ -78,20 +78,35 @@ namespace ArtworksWebApi.Controllers
             try
             {
                 await _context.SaveChangesAsync();
+                return Ok(artwork);
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ArtworkExists(id))
+                if (!PatientExists(id))
                 {
-                    return NotFound();
+                    ModelState.AddModelError("", "Concurrency Error: Patient has been Removed.");
+                    return BadRequest(ModelState);
                 }
                 else
                 {
-                    throw;
+                    ModelState.AddModelError("", "Concurrency Error: Patient has been updated by another user.  Cancel and try editing the record again.");
+                    return BadRequest(ModelState);
+                }
+            }
+            catch (DbUpdateException dex)
+            {
+                if (dex.InnerException.Message.Contains("IX_"))
+                {
+                    ModelState.AddModelError("", "Unable to save changes: Duplicate OHIP number.");
+                    return BadRequest(ModelState);
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Unable to save changes to the database. Try again, and if the problem persists see your system administrator.");
+                    return BadRequest(ModelState);
                 }
             }
 
-            return NoContent();
         }
 
         // POST: api/Artworks
@@ -104,11 +119,25 @@ namespace ArtworksWebApi.Controllers
             }
 
             _context.Artworks.Add(artwork);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetArtwork", new { id = artwork.ID }, artwork);
+            try
+            {
+                await _context.SaveChangesAsync();
+                return CreatedAtAction("GetPatient", new { id = artwork.ID }, artwork);
+            }
+            catch (DbUpdateException dex)
+            {
+                if (dex.InnerException.Message.Contains("IX_"))
+                {
+                    ModelState.AddModelError("", "Unable to save: Duplicate OHIP number.");
+                    return BadRequest(ModelState);
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Unable to save changes to the database. Try again, and if the problem persists see your system administrator.");
+                    return BadRequest(ModelState);
+                }
+            }
         }
-
         // DELETE: api/Artworks/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteArtwork([FromRoute] int id)
@@ -118,19 +147,29 @@ namespace ArtworksWebApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            var artwork = await _context.Artworks.FindAsync(id);
-            if (artwork == null)
+            var patient = await _context.Artworks.FindAsync(id);
+
+            if (patient == null)
             {
-                return NotFound();
+                ModelState.AddModelError("", "Delete Error: Patient has already been Removed.");
+
             }
-
-            _context.Artworks.Remove(artwork);
-            await _context.SaveChangesAsync();
-
-            return Ok(artwork);
+            else
+            {
+                try
+                {
+                    _context.Artworks.Remove(patient);
+                    await _context.SaveChangesAsync();
+                    return Ok(patient);
+                }
+                catch (DbUpdateException)
+                {
+                    ModelState.AddModelError("", "Delete Error: Unable to delete Patient.");
+                }
+            }
+            return BadRequest(ModelState);
         }
-
-        private bool ArtworkExists(int id)
+        private bool PatientExists(int id)
         {
             return _context.Artworks.Any(e => e.ID == id);
         }

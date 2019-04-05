@@ -30,21 +30,37 @@ namespace ArtworksWebApi.Controllers
 
         // GET: api/ArtTypes/5
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetArtType([FromRoute] int id)
+        public async Task<IActionResult> GetArtType([FromRoute] int id, [FromBody] ArtType artType)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var artType = await _context.ArtTypes.FindAsync(id);
-
-            if (artType == null)
+            if (id != artType.ID)
             {
-                return NotFound();
+                return BadRequest();
             }
 
-            return Ok(artType);
+            _context.Entry(artType).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ArtTypeExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
         }
 
         // PUT: api/ArtTypes/5
@@ -81,46 +97,45 @@ namespace ArtworksWebApi.Controllers
 
             return NoContent();
         }
-
         // POST: api/ArtTypes
         [HttpPost]
-        public async Task<IActionResult> PostArtType([FromBody] ArtType artType)
+    public async Task<IActionResult> PostArtType([FromBody] ArtType artType)
+    {
+        if (!ModelState.IsValid)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            _context.ArtTypes.Add(artType);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetArtType", new { id = artType.ID }, artType);
+            return BadRequest(ModelState);
         }
 
-        // DELETE: api/ArtTypes/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteArtType([FromRoute] int id)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+        _context.ArtTypes.Add(artType);
+        await _context.SaveChangesAsync();
 
-            var artType = await _context.ArtTypes.FindAsync(id);
-            if (artType == null)
-            {
-                return NotFound();
-            }
-
-            _context.ArtTypes.Remove(artType);
-            await _context.SaveChangesAsync();
-
-            return Ok(artType);
-        }
-
-        private bool ArtTypeExists(int id)
-        {
-            return _context.ArtTypes.Any(e => e.ID == id);
-        }
+        return CreatedAtAction("GetArtType", new { id = artType.ID }, artType);
     }
+
+    // DELETE: api/ArtTypes/5
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteArtType([FromRoute] int id)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var artType = await _context.ArtTypes.FindAsync(id);
+        if (artType == null)
+        {
+            return NotFound();
+        }
+
+        _context.ArtTypes.Remove(artType);
+        await _context.SaveChangesAsync();
+
+        return Ok(artType);
+    }
+
+    private bool ArtTypeExists(int id)
+    {
+        return _context.ArtTypes.Any(e => e.ID == id);
+    }
+}
 }
