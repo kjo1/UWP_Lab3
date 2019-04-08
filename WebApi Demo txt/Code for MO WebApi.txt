@@ -1,0 +1,291 @@
+Cerate CoreWebAPI Project
+-----------
+Models Folder
+-----------
+    public class Patient
+    {
+        public int ID { get; set; }
+
+        [Display(Name = "Patient ")]
+        public string FullName
+        {
+            get
+            {
+                return FirstName
+                    + (string.IsNullOrEmpty(MiddleName) ? " " :
+                        (" " + (char?)MiddleName[0] + ". ").ToUpper())
+                    + LastName;
+            }
+        }
+
+        [Display(Name = "First Name")]
+        [Required(ErrorMessage = "The first name cannot be left blank.")]
+        [StringLength(50, ErrorMessage = "First name cannot be more than 50 characters long.")]
+        public string FirstName { get; set; }
+
+        [Display(Name = "Middle Name")]
+        [StringLength(50, ErrorMessage = "Middle name cannot be more than 50 characters long.")]
+        public string MiddleName { get; set; }
+
+        [Display(Name = "Last Name")]
+        [Required(ErrorMessage = "The last name cannot be left blank.")]
+        [StringLength(100, ErrorMessage = "Lasst name cannot be more than 100 characters long.")]
+        public string LastName { get; set; }
+
+        [Required(ErrorMessage = "OHIP Number is required.")]
+        [StringLength(10)]//DS Note: we only include this to limit the size of the database field to 10
+        [RegularExpression("^\\d{10}$", ErrorMessage = "The OHIP number must be exactly 10 numeric digits.")]
+        public string OHIP { get; set; }
+
+        [Required(ErrorMessage = "You must enter the Date of Birth.")]
+        [DataType(DataType.Date)]
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
+        public DateTime DOB { get; set; }
+
+        [Display(Name = "Visits/Yr")]
+        [Required(ErrorMessage = "You must enter the number of expected yearly visits.")]
+        [Range(2, 12, ErrorMessage = "The expected number of yearly visits must be between 2 and 12.")]
+        public byte ExpYrVisits { get; set; }
+
+        [Timestamp]
+        public Byte[] RowVersion { get; set; }
+
+        public int DoctorID { get; set; }
+        public Doctor Doctor { get; set; }
+    }
+-----------
+    [DataContract]
+    public class Doctor
+    {
+        [DataMember]
+        public int ID { get; set; }
+
+        [Display(Name = "Doctor")]
+        public string FullName
+        {
+            get
+            {
+                return "Dr. " + FirstName
+                    + (string.IsNullOrEmpty(MiddleName) ? " " :
+                        (" " + (char?)MiddleName[0] + ". ").ToUpper())
+                    + LastName;
+            }
+        }
+
+        public string FormalName
+        {
+            get
+            {
+                return LastName + ", " + FirstName
+                    + (string.IsNullOrEmpty(MiddleName) ? "" :
+                        (" " + (char?)MiddleName[0] + ".").ToUpper());
+            }
+        }
+        [DataMember]
+        [Display(Name = "First Name")]
+        [Required(ErrorMessage = "The Doctor's first name cannot be left blank.")]
+        [StringLength(50, ErrorMessage = "First name cannot be more than 50 characters long.")]
+        public string FirstName { get; set; }
+
+        [DataMember]
+        [Display(Name = "Middle Name")]
+        [StringLength(50, ErrorMessage = "Middle name cannot be more than 50 characters long.")]
+        public string MiddleName { get; set; }
+
+        [DataMember]
+        [Display(Name = "Last Name")]
+        [Required(ErrorMessage = "The Doctor's last name is required.")]
+        [StringLength(100, ErrorMessage = "Last name cannot be more than 100 characters long.")]
+        public string LastName { get; set; }
+
+        [DataMember]
+        [Timestamp]
+        public Byte[] RowVersion { get; set; }
+
+        public ICollection<Patient> Patients { get; set; }
+    }
+-----------
+Data Folder
+-----------
+    public class MedicalOfficeContext : DbContext
+    {
+        public MedicalOfficeContext(DbContextOptions<MedicalOfficeContext> options)
+            : base(options)
+        {
+            
+        }
+        public DbSet<Doctor> Doctors { get; set; }
+        public DbSet<Patient> Patients { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.HasDefaultSchema("MO");
+
+            //Add a unique index to the OHIP Number
+            modelBuilder.Entity<Patient>()
+            .HasIndex(p => p.OHIP)
+            .IsUnique();
+
+            modelBuilder.Entity<Doctor>()
+                .HasMany(p => p.Patients)
+                .WithOne(d => d.Doctor)
+                .OnDelete(DeleteBehavior.Restrict);
+
+        }
+    }
+-----------
+In appsettings.json
+
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=MedicalOfficeContext-febca48e-fae6-4500-a25a-dcf13214c7b3;Trusted_Connection=True;MultipleActiveResultSets=true",
+    "MedicalOfficeContext": "Server=(localdb)\\mssqllocaldb;Database=MedicalOfficeContext-febca48e-fae6-4500-a25a-dcf13214c7b3;Trusted_Connection=True;MultipleActiveResultSets=true"
+  },
+-------------
+In Startup.cs
+
+- ConfigureServices
+
+            services.AddDbContext<MedicalOfficeContext>(options =>
+                    options.UseSqlServer(Configuration.GetConnectionString("MedicalOfficeContext")));
+- Configure
+            //app.UseHttpsRedirection();
+-------------
+In Program.cs
+
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            //CreateWebHostBuilder(args).Build().Run();
+            var host = CreateWebHostBuilder(args).Build();
+
+            using (var scope = host.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+
+                try
+                {
+                    var context = services.GetRequiredService<MedicalOfficeContext>();
+                    context.Database.Migrate();
+                    MOSeedData.Initialize(services);
+                }
+                catch (Exception ex)
+                {
+                    var logger = services.GetRequiredService<ILogger<Program>>();
+                    logger.LogError(ex, "An error occurred seeding the DB.");
+                }
+            }
+
+            host.Run();
+        }
+
+        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
+            WebHost.CreateDefaultBuilder(args)
+                .UseStartup<Startup>();
+    }
+-------------------
+Back in Data Folder
+
+    public static class MOSeedData
+    {
+        public static void Initialize(IServiceProvider serviceProvider)
+        {
+
+            using (var context = new MedicalOfficeContext(
+                serviceProvider.GetRequiredService<DbContextOptions<MedicalOfficeContext>>()))
+            {
+                // Look for any Doctors.  Since we can't have patients without Doctors.
+                if (!context.Doctors.Any())
+                {
+                    context.Doctors.AddRange(
+                     new Doctor
+                     {
+                         FirstName = "Gregory",
+                         MiddleName = "A",
+                         LastName = "House"
+                     },
+
+                     new Doctor
+                     {
+                         FirstName = "Doogie",
+                         MiddleName = "R",
+                         LastName = "Houser"
+                     },
+                     new Doctor
+                     {
+                         FirstName = "Charles",
+                         LastName = "Xavier"
+                     }
+                );
+                    context.SaveChanges();
+                }
+                if (!context.Patients.Any())
+                {
+                    context.Patients.AddRange(
+                    new Patient
+                    {
+                        FirstName = "Fred",
+                        MiddleName = "Reginald",
+                        LastName = "Flintstone",
+                        OHIP = "1231231234",
+                        DOB = DateTime.Parse("1955-09-01"),
+                        ExpYrVisits = 6,
+                        DoctorID = context.Doctors.FirstOrDefault(d => d.FirstName == "Gregory" && d.LastName == "House").ID
+                    },
+                    new Patient
+                    {
+                        FirstName = "Wilma",
+                        MiddleName = "Jane",
+                        LastName = "Flintstone",
+                        OHIP = "1321321324",
+                        DOB = DateTime.Parse("1964-04-23"),
+                        ExpYrVisits = 2,
+                        DoctorID = context.Doctors.FirstOrDefault(d => d.FirstName == "Gregory" && d.LastName == "House").ID
+                    },
+                    new Patient
+                    {
+                        FirstName = "Barney",
+                        LastName = "Rubble",
+                        OHIP = "3213213214",
+                        DOB = DateTime.Parse("1964-02-22"),
+                        ExpYrVisits = 2,
+                        DoctorID = context.Doctors.FirstOrDefault(d => d.FirstName == "Doogie" && d.LastName == "Houser").ID
+                    },
+                    new Patient
+                    {
+                        FirstName = "Jane",
+                        MiddleName = "Samantha",
+                        LastName = "Doe",
+                        OHIP = "4124124123",
+                        ExpYrVisits = 2,
+                        DoctorID = context.Doctors.FirstOrDefault(d => d.FirstName == "Charles" && d.LastName == "Xavier").ID
+                    });
+                    context.SaveChanges();
+                }
+            }
+        }
+    }
+--------------
+PMCommands.txt
+--------------
+add-migration -o Data\MOMigrations
+update-database
+==================================
+PatientsController
+
+Add .Includes to all Get methods
+
+Also add...
+
+        // GET: api/PatientsByDoctor
+        [HttpGet("ByDoctor/{id}")]
+        public IEnumerable<Patient> GetPatientsByDoctor(int id)
+        {
+            return _context.Patients.Include(e => e.Doctor)
+                .Where(e => e.DoctorID == id);
+        }
+
+------------------
+Finially, under Properties, launchSettings.json
+
+- change launchUrl to api/patients

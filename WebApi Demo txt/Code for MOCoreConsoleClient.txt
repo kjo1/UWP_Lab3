@@ -1,0 +1,197 @@
+MOCoreConsoleClient Project
+================
+Add the two model classes
+-----
+    [DataContract]
+    public class Doctor
+    {
+        [DataMember]
+        public int ID { get; set; }
+
+        [Display(Name = "Doctor")]
+        public string FullName
+        {
+            get
+            {
+                return "Dr. " + FirstName
+                    + (string.IsNullOrEmpty(MiddleName) ? " " :
+                        (" " + (char?)MiddleName[0] + ". ").ToUpper())
+                    + LastName;
+            }
+        }
+
+        public string FormalName
+        {
+            get
+            {
+                return LastName + ", " + FirstName
+                    + (string.IsNullOrEmpty(MiddleName) ? "" :
+                        (" " + (char?)MiddleName[0] + ".").ToUpper());
+            }
+        }
+        [DataMember]
+        [Display(Name = "First Name")]
+        [Required(ErrorMessage = "The Doctor's first name cannot be left blank.")]
+        [StringLength(50, ErrorMessage = "First name cannot be more than 50 characters long.")]
+        public string FirstName { get; set; }
+
+        [DataMember]
+        [Display(Name = "Middle Name")]
+        [StringLength(50, ErrorMessage = "Middle name cannot be more than 50 characters long.")]
+        public string MiddleName { get; set; }
+
+        [DataMember]
+        [Display(Name = "Last Name")]
+        [Required(ErrorMessage = "The Doctor's last name is required.")]
+        [StringLength(100, ErrorMessage = "Last name cannot be more than 100 characters long.")]
+        public string LastName { get; set; }
+
+        [DataMember]
+        [Timestamp]
+        public Byte[] RowVersion { get; set; }
+
+        public ICollection<Patient> Patients { get; set; }
+
+    }
+-----
+    public class Patient
+    {
+        public int ID { get; set; }
+
+        [Display(Name = "Patient ")]
+        public string FullName
+        {
+            get
+            {
+                return FirstName
+                    + (string.IsNullOrEmpty(MiddleName) ? " " :
+                        (" " + (char?)MiddleName[0] + ". ").ToUpper())
+                    + LastName;
+            }
+        }
+
+        [Display(Name = "First Name")]
+        [Required(ErrorMessage = "The first name cannot be left blank.")]
+        [StringLength(50, ErrorMessage = "First name cannot be more than 50 characters long.")]
+        public string FirstName { get; set; }
+
+        [Display(Name = "Middle Name")]
+        [StringLength(50, ErrorMessage = "Middle name cannot be more than 50 characters long.")]
+        public string MiddleName { get; set; }
+
+        [Display(Name = "Last Name")]
+        [Required(ErrorMessage = "The last name cannot be left blank.")]
+        [StringLength(100, ErrorMessage = "Lasst name cannot be more than 100 characters long.")]
+        public string LastName { get; set; }
+
+        [Required(ErrorMessage = "OHIP Number is required.")]
+        [StringLength(10)]//DS Note: we only include this to limit the size of the database field to 10
+        [RegularExpression("^\\d{10}$", ErrorMessage = "The OHIP number must be exactly 10 numeric digits.")]
+        public string OHIP { get; set; }
+
+        [Required(ErrorMessage = "You must enter the Date of Birth.")]
+        [DataType(DataType.Date)]
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
+        public DateTime DOB { get; set; }
+
+        [Display(Name = "Visits/Yr")]
+        [Required(ErrorMessage = "You must enter the number of expected yearly visits.")]
+        [Range(2, 12, ErrorMessage = "The expected number of yearly visits must be between 2 and 12.")]
+        public byte ExpYrVisits { get; set; }
+
+        [Timestamp]
+        public Byte[] RowVersion { get; set; }
+
+        public int DoctorID { get; set; }
+        public Doctor Doctor { get; set; }
+    }
+-----
+
+NuGet Package Manager - Microsoft.AspNet.WebApi.Client
+
+-----
+Program.cs
+-----
+        static void Main(string[] args)
+        {
+            RunAsync().Wait();
+            Console.ReadLine();
+        }
+
+        static async Task RunAsync()
+        {
+            using (var client = new HttpClient())
+            {
+                // Prepare Client
+                client.BaseAddress = new Uri("http://localhost:50857//");
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                //Prepare Respopnse Object
+                HttpResponseMessage response;
+                // Get the Patients
+                try
+                {
+                    response = await client.GetAsync("api/patients");
+                    response.EnsureSuccessStatusCode(); // Throw exception if not success code
+
+                    List<Patient> patients = await response.Content.ReadAsAsync<List<Patient>>();
+                    foreach (Patient p in patients)
+                    {
+                        Console.WriteLine("ID:{0}\t{1}\tExpYrVisits:{2}\tDoctor:{3}", p.ID, p.FullName, p.ExpYrVisits, p.Doctor.FullName);
+                    }
+                }
+                catch (HttpRequestException)
+                {
+                    throw;
+                }
+                //Add a patient, update it and then delete it.
+                // HTTP POST
+                var patient = new Patient() { FirstName = "Tyrion", LastName = "Lannister", OHIP = "4325436599",  ExpYrVisits=5, DoctorID = 2 };
+                Console.WriteLine("\r\nADDING:\r\nID:{0}\t{1}\tExpYrVisits:{2}\tDoctorID:{3}", patient.ID, patient.FullName, patient.ExpYrVisits, patient.DoctorID);
+
+                try
+                {
+                    response = await client.PostAsJsonAsync("api/patients", patient);
+                    response.EnsureSuccessStatusCode(); // Throw exception if not success code
+                    //Get the new ID
+                    Uri patientUrl = response.Headers.Location;
+                    int newID = Convert.ToInt32(patientUrl.ToString().Split('/').Last());
+                    Console.WriteLine("SUCCESSFULLY Uploaded:\r\nID:{0}\t{1}\tExpYrVisits:{2}\tDoctorID:{3}", patient.ID, patient.FullName, patient.ExpYrVisits, patient.DoctorID);
+
+                    // HTTP PUT
+                    //We have to get a copy of the patient we added in order to have the correct row version
+                    response = await client.GetAsync("api/patients" + "/" + newID);
+                    response.EnsureSuccessStatusCode(); // Throw exception if not success code
+                    Patient addedpatient = await response.Content.ReadAsAsync<Patient>();
+                    Console.WriteLine("Record From Database:\r\nID:{0}\t{1}\tExpYrVisits:{2}\tDoctor:{3}", addedpatient.ID, addedpatient.FullName, addedpatient.ExpYrVisits, addedpatient.Doctor.FullName);
+
+                    addedpatient.ExpYrVisits = 10;   // Update ExpYsVisits
+                    response = await client.PutAsJsonAsync(patientUrl, addedpatient);
+                    response.EnsureSuccessStatusCode(); // Throw exception if not success code
+                    Console.WriteLine("Edited:\r\nID:{0}\t{1}\tExpYrVisits:{2}\t{3}", addedpatient.ID, addedpatient.FullName, addedpatient.ExpYrVisits, addedpatient.Doctor.FullName);
+
+                    // HTTP DELETE
+                    response = await client.DeleteAsync(patientUrl);
+                    response.EnsureSuccessStatusCode(); // Throw exception if not success code
+                    Console.WriteLine("DELETED!\r\n - GET THE LIST AGAIN TO SHOW IT IS GONE\r\n");
+
+                    //GET LIST AND SHOW IT AGAIN
+                    response = await client.GetAsync("api/patients");
+                    if (response.IsSuccessStatusCode)
+                    {
+                        List<Patient> patients = await response.Content.ReadAsAsync<List<Patient>>();
+                        foreach (Patient p in patients)
+                        {
+                            Console.WriteLine("ID:{0}\t{1}\tExpYrVisits:{2}\t{3}", p.ID, p.FullName, p.ExpYrVisits, p.Doctor.FullName);
+                        }
+                    }
+                }
+                catch (HttpRequestException)
+                {
+                    throw;
+                }
+            }
+        }
+-----------
+
