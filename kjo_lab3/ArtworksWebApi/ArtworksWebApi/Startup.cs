@@ -30,6 +30,9 @@ namespace ArtworksWebApi
 
             services.AddDbContext<ArtContext>(options =>
                     options.UseSqlServer(Configuration.GetConnectionString("ArtContext")));
+
+            //services.adddbcontext<artcontext>(options =>
+            //    options.usesqlserver(configuration.getconnectionstring("artcontext")));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
