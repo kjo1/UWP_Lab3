@@ -36,10 +36,8 @@ namespace ArtworksWebApi
                     logger.LogError(ex, "An error occurred seeding the DB.");
                 }
             }
-
             host.Run();
         }
-
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
